@@ -12,7 +12,8 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     followers = relationship("Follower", back_populates="follower")
     following = relationship("Follower", back_populates="following")
-    # posts = relationship("Comment", back_populates="author")
+    posts = relationship("Post", back_populates="user")
+    comments = relationship("Commnent", back_populates="author")
 
     def serialize(self):
         return {
@@ -23,7 +24,8 @@ class User(db.Model):
             "email": self.email,
             "followers": self.followers,
             "following": self.following,
-            # "posts": self.posts
+            "posts": self.posts,
+            "comments": self.comments
             # do not serialize the password, its a security breach
         }
 
@@ -45,30 +47,33 @@ class Follower(db.Model):
 class Post(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    # author = relationship("Comment", back_populates="post")
+    user = relationship("User", back_populates="posts")
+    author = relationship("Comment", back_populates="post")
 
     def serialize(self):
         return {
             "id": self.id,
             "user_id": self.user_id,
+            "user": self.user,
+            "author": self.author
         }
 
 class Comment(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     comment_text: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     author_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    # author = relationship("User", back_populates="posts")
+    author = relationship("User", back_populates="comments")
     post_id: Mapped[int] = mapped_column(ForeignKey("post.id"))
-    # post = relationship("Post", back_populates="author")
+    post = relationship("Post", back_populates="author")
 
     def serialize(self):
         return {
             "id": self.id,
             "comment_text": self.comment_text,
             "author_id": self.author_id,
-            # "author": self.author,
+            "author": self.author,
             "post_id": self.post_id,
-            # "post": self.post
+            "post": self.post
         }
 
 class Media(db.Model):
